@@ -12,6 +12,7 @@ requests = "*"
 scikit-learn = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
+pandas = "*"
 
 [dev-packages]
 
