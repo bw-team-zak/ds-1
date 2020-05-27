@@ -6,9 +6,6 @@ __pycache__/
 # data dir
 data
 
-# vs code env config
-.vscode
-
 # saved models
 *.h5
 
