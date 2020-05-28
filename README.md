@@ -20,6 +20,6 @@
 
 Go to ```http://localhost:5000/jsontest```
 
-## Getting all strains:
+## Getting all names:
 
 Go to ```http://localhost:5000/names```
