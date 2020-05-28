@@ -3,20 +3,21 @@ import pandas as pd
 from sqlalchemy import create_engine
 import dotenv
 from os import getenv
-
 import tensorflow as tf
 from tensorflow.keras.preprocessing.text import Tokenizer
-from json import loads,dumps
+from json import loads
 from pandas.io.json import json_normalize
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsTransformer
 
 import pickle
+
 
 class Transformer():
     def __init__(self):
         # try to load data from .env
-        self.load_data(getenv("DATASOURCE", f"{getenv('DATABASE_URL')}"))
+
+        self.load_data()
 
         self.tokenizer = Tokenizer(num_words=1000, lower=True)
         return
@@ -26,14 +27,15 @@ class Transformer():
         strain_info table then saves it to a df
         """
         dotenv.load_dotenv()
+        alt = 'DATABASE_URL'
+        db_url = getenv("DATASOURCE", default=alt)
 
-        engine = create_engine()
+        engine = create_engine(db_url)
         df = pd.read_sql("SELECT * FROM strain_info", engine)
         self.df = df
         return df
 
-    def transform(self, document: pd.DataFrame, ignore: list,
-                  negitive: list) -> pd.DataFrame:
+    def transform(self, document: pd.DataFrame, negative: list, ignore: list) -> pd.DataFrame:
         """A function that takes the document input and transforms it into a MinMax
         scaled DataFrame that represents the term frequency matrix.
         this method adds the dtm's for each feature then subtracts the neg feature's dtm
@@ -56,11 +58,11 @@ class Transformer():
             else:
                 # takes the document term frequency and if it is
                 # a neg feature then we want to subtract  it from the combined dtm
-                if i in negitive:
-                    dtm -= self.find_dtm(self.df[i])
+                if i in negative:
+                    dtm -= self.find_dtm(document[i])
                 # otherwise i want to add it to the combined dtm
                 else:
-                    dtm += self.find_dtm(self.df[i])
+                    dtm += self.find_dtm(document[i])
 
         mm = MinMaxScaler()
         combined_scaled_values = mm.fit_transform(dtm)
@@ -68,7 +70,7 @@ class Transformer():
         combined_scaled = pd.DataFrame(combined_scaled_values,
                                        columns=combined_scaled_columns)
         combined_scaled.fillna(0, inplace=True)
-        return combined_scaled, self.df.index.tolist()
+        return combined_scaled, document.index.tolist()
 
     def find_dtm(self, feature):
         """A function to take a feature and tokenize then return a tfidf df of that input
@@ -78,8 +80,33 @@ class Transformer():
         config = self.tokenizer.get_config()
         feature_names = json_normalize(loads(
             config['word_index'])).columns.tolist()
-        dtm = pd.DataFrame(a, columns=feature_names[:1000])
+        dtm = pd.DataFrame(a)
         return dtm
-tr = Transformer()
-model = MLModel()
-model.fit(X,y)
+
+class Model():
+
+    def __init__(self):
+        self.knn = KNeighborsTransformer(n_neighbors=5,n_jobs=-1)
+
+    def fit(self, dtm):
+        self.knn.fit(dtm, dtm.index.tolist())
+
+    def predict(self):
+        pass
+
+
+if __name__ == "__main__":
+    tr = Transformer()
+    negative = ['negative']
+    ignore = []
+    user_transformed, y = tr.transform(
+        pd.DataFrame({'name': "blue berry kush",
+                      'race': 'sativa',
+                      'flavors': ['blueberry', 'sweet'],
+                      'negative': ['dry mouth', 'dry eyes'],
+                      'positive': ['creativity', 'stress'],
+                      'medical': ['ptsd', 'stress'],
+                      'description': "blueberry kush my dude blueberry_kush:10, whitewhidow:10 ",
+                      }), negative, ignore)
+    model = Model()
+
