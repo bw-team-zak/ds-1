@@ -2,6 +2,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 import dotenv
+from os import getenv
 
 import tensorflow as tf
 from tensorflow.keras.preprocessing.text import Tokenizer
@@ -14,7 +15,9 @@ import pickle
 
 class Transformer():
     def __init__(self):
-        self.load_data()
+        # try to load data from .env
+        self.load_data(getenv("DATASOURCE", f"{getenv('DATABASE_URL')}"))
+
         self.tokenizer = Tokenizer(num_words=1000, lower=True)
         return
 
@@ -22,10 +25,12 @@ class Transformer():
         """A function that takes the DATABASE_URL and fetches the contents of the
         strain_info table then saves it to a df
         """
+        dotenv.load_dotenv()
+
         engine = create_engine()
         df = pd.read_sql("SELECT * FROM strain_info", engine)
         self.df = df
-        return
+        return df
 
     def transform(self, document: pd.DataFrame, ignore: list,
                   negitive: list) -> pd.DataFrame:
