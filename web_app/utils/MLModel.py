@@ -21,10 +21,10 @@ class Transformer():
 
         self.tokenizer = Tokenizer(num_words=1000, lower=True)
         return
-
+    
     def load_data(self):
         """A function that takes the DATABASE_URL and fetches the contents of the
-        strain_info table then saves it to a df
+        strain_info table then saves it to a df for training the model.
         """
         dotenv.load_dotenv()
         alt = 'DATABASE_URL'
@@ -36,10 +36,7 @@ class Transformer():
         return df
 
     def transform(self, document: pd.DataFrame, negative: list, ignore: list) -> pd.DataFrame:
-        """A function that takes the document input and transforms it into a MinMax
-        scaled DataFrame that represents the term frequency matrix.
-        this method adds the dtm's for each feature then subtracts the neg feature's dtm
-        then scales the data with a MinMaxScalar from sklearn.preprocessing
+        """A function transforms the features from the input dataframe into a Document-term matrix then takes those 
         Arguments:
         -------------
         document {list} : An array like list of strings representing a document to be transformed
@@ -83,17 +80,6 @@ class Transformer():
         dtm = pd.DataFrame(a)
         return dtm
 
-class Model():
-
-    def __init__(self):
-        self.knn = KNeighborsTransformer(n_neighbors=5,n_jobs=-1)
-
-    def fit(self, dtm):
-        self.knn.fit(dtm, dtm.index.tolist())
-
-    def predict(self):
-        pass
-
 
 if __name__ == "__main__":
     tr = Transformer()
@@ -108,5 +94,6 @@ if __name__ == "__main__":
                       'medical': ['ptsd', 'stress'],
                       'description': "blueberry kush my dude blueberry_kush:10, whitewhidow:10 ",
                       }), negative, ignore)
-    model = Model()
+    model = KNeighborsTransformer()
+    model.fit()
 
