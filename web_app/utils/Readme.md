@@ -2,9 +2,12 @@
 
 ------------
 ```python
+#
 import web_app.utils.MLModel
 tr = MLModel.Transformer()
-model = MLModel.load_pickle("path/to/picklefile")
+# open the pickle file and load model
+with open("path/to/pickle", 'rb') as fp:
+    model = pickle.load(fp)
 negative = ['negative']
 ignore = ['index','id']
 user_transformed = tr.transform(pd.dataframe({'name':str,
@@ -14,20 +17,23 @@ user_transformed = tr.transform(pd.dataframe({'name':str,
                                               'positive':list,
                                               'medical':list,
                                               'description':str,
-                                              'preference':list
                                               }),
                                 negative,
                                 ignore)
 pred = model.predict(user_transformed)
 pred[1]
-
 ```
-<p>
+```python
+Output:
+[['#', '#', '#', '#', '#']]
+```
 
-the `ignore` keyword is a list of column names that should be excluded from the model.
-
-the `negative` keyword is a list of column names that should have a negitive effect
-on the recomendation, for init training we used:
-
-</p>
-
+<h2>The numbers correspond to the index of the strains in the database</h2>
+<div>
+    <p>
+        the `ignore` keyword is a list of column names that should be excluded from the model.
+        the `negative` keyword is a list of column names that should have a negative effect
+        on the recommendation, for inital training we used:
+    </p>
+</div>
+<a href="../../README.md">Main Readme</a>
